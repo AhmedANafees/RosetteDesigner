@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rose Engine Rosette Designer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 0;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .control-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+        }
+
+        .control-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9em;
+        }
+
+        .control-group input[type="number"],
+        .control-group input[type="range"],
+        .control-group select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 0.9em;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input[type="number"]:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .control-group input[type="range"] {
+            padding: 0;
+        }
+
+        .value-display {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .hint {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-top: 3px;
+            font-style: italic;
+        }
+
+        .canvas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+            background: white;
+        }
+
+        .canvas-container {
+            position: relative;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .canvas-container h4 {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            z-index: 10;
+            margin: 0;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.85em;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: transform 0.3s;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.02);
+        }
+
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 300px 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .canvas-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌹 Rose Engine Rosette Designer</h1>
+            <p>Design and visualize ornamental turning patterns for guilloché and decorative engraving</p>
+        </header>
+
+        <div class="content">
+            <div class="controls">
+                <div class="control-section">
+                    <h3>Quick Presets</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" onclick="loadPreset('classic')">Classic 6-Wave</button>
+                        <button class="preset-btn" onclick="loadPreset('watch')">Watch Dial</button>
+                        <button class="preset-btn" onclick="loadPreset('decorative')">Decorative</button>
+                        <button class="preset-btn" onclick="loadPreset('fine')">Fine Detail</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Rosette Parameters</h3>
+                    
+                    <div class="control-group">
+                        <label>Diameter (mm): <span class="value-display" id="diameter-val">100</span></label>
+                        <input type="range" id="diameter" min="20" max="200" value="100" step="5">
+                        <div class="hint">Overall size of the rosette</div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Max Pitch (mm): <span class="value-display" id="maxPitch-val">5.0</span></label>
+                        <input type="range" id="maxPitch" min="0" max="15" value="5" step="0.5">
+                        <div class="hint">Maximum wave amplitude</div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Min Pitch (mm): <span class="value-display" id="minPitch-val">0.0</span></label>
+                        <input type="range" id="minPitch" min="-5" max="10" value="0" step="0.5">
+                        <div class="hint">Minimum wave amplitude</div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Number of Waves: <span class="value-display" id="numWaves-val">6</span></label>
+                        <input type="range" id="numWaves" min="3" max="48" value="6" step="1">
+                        <div class="hint">Wave cycles around rosette</div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Wave Offset (°): <span class="value-display" id="waveOffset-val">0</span></label>
+                        <input type="range" id="waveOffset" min="0" max="360" value="0" step="15">
+                        <div class="hint">Phase shift of wave pattern</div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Standard Pattern</h3>
+                    
+                    <div class="control-group">
+                        <label>Workpiece Rotation (°): <span class="value-display" id="workpieceRotation-val">360</span></label>
+                        <input type="range" id="workpieceRotation" min="90" max="1080" value="360" step="90">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Rosette Rotations: <span class="value-display" id="rosetteRotations-val">1</span></label>
+                        <input type="range" id="rosetteRotations" min="1" max="5" value="1" step="1">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Concentric Patterns</h3>
+                    
+                    <div class="control-group">
+                        <label>Number of Rings: <span class="value-display" id="numRings-val">6</span></label>
+                        <input type="range" id="numRings" min="3" max="12" value="6" step="1">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Ring Spacing (mm): <span class="value-display" id="ringSpacing-val">15</span></label>
+                        <input type="range" id="ringSpacing" min="5" max="30" value="15" step="1">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Phase Shift (°): <span class="value-display" id="phaseShift-val">45</span></label>
+                        <input type="range" id="phaseShift" min="0" max="180" value="45" step="15">
+                        <div class="hint">0° = aligned, 45° = spiral</div>
+                    </div>
+                </div>
+
+                <button class="download-btn" onclick="downloadAllCanvases()">📥 Download All Patterns</button>
+            </div>
+
+            <div class="canvas-grid">
+                <div class="canvas-container">
+                    <h4>Rosette Profile</h4>
+                    <canvas id="rosetteCanvas" width="500" height="500"></canvas>
+                </div>
+                <div class="canvas-container">
+                    <h4>Standard Cutting Pattern</h4>
+                    <canvas id="patternCanvas" width="500" height="500"></canvas>
+                </div>
+                <div class="canvas-container">
+                    <h4>Concentric (Aligned)</h4>
+                    <canvas id="concentricAlignedCanvas" width="500" height="500"></canvas>
+                </div>
+                <div class="canvas-container">
+                    <h4>Concentric (Phase Shift)</h4>
+                    <canvas id="concentricShiftCanvas" width="500" height="500"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Rose Engine Rosette Designer | Based on traditional guilloché mathematics</p>
+            <p><a href="https://github.com" target="_blank">View on GitHub</a> | Free and open source</p>
+        </footer>
+    </div>
+
+    <script>
+        // Rosette calculation class
+        class Rosette {
+            constructor(diameter, maxPitch, minPitch, numWaves, waveOffset) {
+                this.diameter = diameter;
+                this.maxPitch = maxPitch;
+                this.minPitch = minPitch;
+                this.numWaves = numWaves;
+                this.waveOffset = waveOffset * Math.PI / 180; // Convert to radians
+                
+                this.radius = diameter / 2;
+                this.amplitude = (maxPitch - minPitch) / 2;
+                this.offset = minPitch + this.amplitude;
+            }
+
+            getRadiusAtAngle(theta) {
+                const wave = this.amplitude * Math.sin(this.numWaves * theta + this.waveOffset);
+                return this.radius + this.offset + wave;
+            }
+
+            generateProfile(numPoints = 1000) {
+                const points = [];
+                for (let i = 0; i <= numPoints; i++) {
+                    const theta = (i / numPoints) * 2 * Math.PI;
+                    const r = this.getRadiusAtAngle(theta);
+                    points.push({
+                        x: r * Math.cos(theta),
+                        y: r * Math.sin(theta),
+                        theta: theta,
+                        r: r
+                    });
+                }
+                return points;
+            }
+
+            generateCuttingPattern(rotationAngle, numRotations, numPoints = 500) {
+                const totalPoints = numPoints * numRotations;
+                const points = [];
+                
+                for (let i = 0; i <= totalPoints; i++) {
+                    const workpieceTheta = (i / totalPoints) * rotationAngle * Math.PI / 180;
+                    const rosetteTheta = (i / totalPoints) * 2 * Math.PI * numRotations;
+                    const r = this.getRadiusAtAngle(rosetteTheta);
+                    
+                    points.push({
+                        x: r * Math.cos(workpieceTheta),
+                        y: r * Math.sin(workpieceTheta)
+                    });
+                }
+                return points;
+            }
+
+            generateConcentricPattern(numRings, ringSpacing, phaseShift, numPoints = 500) {
+                const rings = [];
+                const phaseShiftRad = phaseShift * Math.PI / 180;
+                
+                for (let ring = 0; ring < numRings; ring++) {
+                    const ringRadius = (ring + 1) * ringSpacing;
+                    const ringPhase = ring * phaseShiftRad;
+                    const points = [];
+                    
+                    for (let i = 0; i <= numPoints; i++) {
+                        const theta = (i / numPoints) * 2 * Math.PI;
+                        const rosetteTheta = theta + ringPhase;
+                        const displacement = this.getRadiusAtAngle(rosetteTheta) - this.radius;
+                        const r = ringRadius + displacement;
+                        
+                        points.push({
+                            x: r * Math.cos(theta),
+                            y: r * Math.sin(theta)
+                        });
+                    }
+                    rings.push(points);
+                }
+                return rings;
+            }
+        }
+
+        // Drawing functions
+        function drawRosetteProfile(canvas, rosette) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            // Calculate scale
+            const maxRadius = rosette.radius + rosette.maxPitch;
+            const scale = Math.min(width, height) * 0.4 / maxRadius;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw base circle
+            ctx.strokeStyle = '#dee2e6';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, rosette.radius * scale, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw rosette profile
+            const points = rosette.generateProfile();
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            points.forEach((point, i) => {
+                const x = centerX + point.x * scale;
+                const y = centerY + point.y * scale;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.closePath();
+            ctx.stroke();
+            
+            // Draw center point
+            ctx.fillStyle = '#764ba2';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawCuttingPattern(canvas, rosette, rotationAngle, numRotations) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            const points = rosette.generateCuttingPattern(rotationAngle, numRotations);
+            
+            // Calculate scale
+            const maxDist = Math.max(...points.map(p => Math.sqrt(p.x * p.x + p.y * p.y)));
+            const scale = Math.min(width, height) * 0.4 / maxDist;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw pattern
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            points.forEach((point, i) => {
+                const x = centerX + point.x * scale;
+                const y = centerY + point.y * scale;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            
+            // Mark start and end
+            ctx.fillStyle = '#27ae60';
+            ctx.beginPath();
+            ctx.arc(centerX + points[0].x * scale, centerY + points[0].y * scale, 4, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath();
+            const lastPoint = points[points.length - 1];
+            ctx.arc(centerX + lastPoint.x * scale, centerY + lastPoint.y * scale, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawConcentricPattern(canvas, rosette, numRings, ringSpacing, phaseShift) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            const rings = rosette.generateConcentricPattern(numRings, ringSpacing, phaseShift);
+            
+            // Calculate scale
+            const maxRadius = numRings * ringSpacing + rosette.maxPitch;
+            const scale = Math.min(width, height) * 0.4 / maxRadius;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw rings with color gradient
+            rings.forEach((ring, ringIndex) => {
+                const hue = (ringIndex / rings.length) * 270 + 200; // Blue to purple
+                ctx.strokeStyle = `hsl(${hue}, 70%, 50%)`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ring.forEach((point, i) => {
+                    const x = centerX + point.x * scale;
+                    const y = centerY + point.y * scale;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.closePath();
+                ctx.stroke();
+            });
+            
+            // Draw center point
+            ctx.fillStyle = '#764ba2';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // Update all visualizations
+        function updateAll() {
+            const params = {
+                diameter: parseFloat(document.getElementById('diameter').value),
+                maxPitch: parseFloat(document.getElementById('maxPitch').value),
+                minPitch: parseFloat(document.getElementById('minPitch').value),
+                numWaves: parseInt(document.getElementById('numWaves').value),
+                waveOffset: parseFloat(document.getElementById('waveOffset').value),
+                workpieceRotation: parseFloat(document.getElementById('workpieceRotation').value),
+                rosetteRotations: parseFloat(document.getElementById('rosetteRotations').value),
+                numRings: parseInt(document.getElementById('numRings').value),
+                ringSpacing: parseFloat(document.getElementById('ringSpacing').value),
+                phaseShift: parseFloat(document.getElementById('phaseShift').value)
+            };
+
+            // Update value displays
+            Object.keys(params).forEach(key => {
+                const display = document.getElementById(key + '-val');
+                if (display) {
+                    display.textContent = params[key];
+                }
+            });
+
+            // Create rosette
+            const rosette = new Rosette(
+                params.diameter,
+                params.maxPitch,
+                params.minPitch,
+                params.numWaves,
+                params.waveOffset
+            );
+
+            // Draw all canvases
+            drawRosetteProfile(document.getElementById('rosetteCanvas'), rosette);
+            drawCuttingPattern(
+                document.getElementById('patternCanvas'),
+                rosette,
+                params.workpieceRotation,
+                params.rosetteRotations
+            );
+            drawConcentricPattern(
+                document.getElementById('concentricAlignedCanvas'),
+                rosette,
+                params.numRings,
+                params.ringSpacing,
+                0
+            );
+            drawConcentricPattern(
+                document.getElementById('concentricShiftCanvas'),
+                rosette,
+                params.numRings,
+                params.ringSpacing,
+                params.phaseShift
+            );
+        }
+
+        // Preset configurations
+        function loadPreset(preset) {
+            const presets = {
+                classic: {
+                    diameter: 100, maxPitch: 5, minPitch: 0, numWaves: 6,
+                    waveOffset: 0, workpieceRotation: 360, rosetteRotations: 1,
+                    numRings: 6, ringSpacing: 15, phaseShift: 45
+                },
+                watch: {
+                    diameter: 35, maxPitch: 1.5, minPitch: 0, numWaves: 16,
+                    waveOffset: 0, workpieceRotation: 360, rosetteRotations: 1,
+                    numRings: 5, ringSpacing: 8, phaseShift: 30
+                },
+                decorative: {
+                    diameter: 120, maxPitch: 8, minPitch: 2, numWaves: 8,
+                    waveOffset: 0, workpieceRotation: 360, rosetteRotations: 1,
+                    numRings: 7, ringSpacing: 18, phaseShift: 45
+                },
+                fine: {
+                    diameter: 80, maxPitch: 3, minPitch: 0.5, numWaves: 24,
+                    waveOffset: 0, workpieceRotation: 360, rosetteRotations: 1,
+                    numRings: 8, ringSpacing: 10, phaseShift: 60
+                }
+            };
+
+            const config = presets[preset];
+            Object.keys(config).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = config[key];
+                }
+            });
+
+            updateAll();
+        }
+
+        // Download functionality
+        function downloadAllCanvases() {
+            const canvases = ['rosetteCanvas', 'patternCanvas', 'concentricAlignedCanvas', 'concentricShiftCanvas'];
+            const names = ['rosette-profile', 'cutting-pattern', 'concentric-aligned', 'concentric-shift'];
+            
+            canvases.forEach((id, index) => {
+                const canvas = document.getElementById(id);
+                const link = document.createElement('a');
+                link.download = `${names[index]}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add event listeners to all controls
+            const controls = [
+                'diameter', 'maxPitch', 'minPitch', 'numWaves', 'waveOffset',
+                'workpieceRotation', 'rosetteRotations', 'numRings', 
+                'ringSpacing', 'phaseShift'
+            ];
+
+            controls.forEach(id => {
+                document.getElementById(id).addEventListener('input', updateAll);
+            });
+
+            // Initial render
+            updateAll();
+        });
+    </script>
+</body>
+</html>
